@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * Graph. Could be directed or undirected depending on the TYPE enum. A graph is
  * an abstract representation of a set of objects where some pairs of the
@@ -18,8 +21,8 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class Graph<T extends Comparable<T>> {
 
-    private List<Vertex<T>> allVertices = new ArrayList<Vertex<T>>();
-    private List<Edge<T>> allEdges = new ArrayList<Edge<T>>();
+    private List<Vertex<T>> allVertices = new @NonNull ArrayList<Vertex<T>>();
+    private List<Edge<T>> allEdges = new @NonNull ArrayList<Edge<T>>();
 
     public enum TYPE {
         DIRECTED, UNDIRECTED
@@ -35,14 +38,14 @@ public class Graph<T extends Comparable<T>> {
     }
 
     /** Deep copies **/
-    public Graph(Graph<T> g) {
+    @SuppressWarnings("nullness") public Graph(Graph<T> g) {
         type = g.getType();
 
         // Copy the vertices which also copies the edges
         for (Vertex<T> v : g.getVertices())
             this.allVertices.add(new Vertex<T>(v));
 
-        for (Vertex<T> v : this.getVertices()) {
+        for (Vertex<T> v : this.getVertices()) { // nullness is suppressed because only initialization of object is different
             for (Edge<T> e : v.getEdges()) {
                 this.allEdges.add(e);
             }
@@ -51,10 +54,10 @@ public class Graph<T extends Comparable<T>> {
 
     /**
      * Creates a Graph from the vertices and edges. This defaults to an undirected Graph
-     * 
+     *
      * NOTE: Duplicate vertices and edges ARE allowed.
      * NOTE: Copies the vertex and edge objects but does NOT store the Collection parameters itself.
-     * 
+     *
      * @param vertices Collection of vertices
      * @param edges Collection of edges
      */
@@ -64,10 +67,10 @@ public class Graph<T extends Comparable<T>> {
 
     /**
      * Creates a Graph from the vertices and edges.
-     * 
+     *
      * NOTE: Duplicate vertices and edges ARE allowed.
      * NOTE: Copies the vertex and edge objects but does NOT store the Collection parameters itself.
-     * 
+     *
      * @param vertices Collection of vertices
      * @param edges Collection of edges
      */
@@ -122,7 +125,7 @@ public class Graph<T extends Comparable<T>> {
      * {@inheritDoc}
      */
     @Override
-    public boolean equals(Object g1) {
+    public boolean equals(@Nullable Object g1) {
         if (!(g1 instanceof Graph))
             return false;
 
@@ -178,10 +181,10 @@ public class Graph<T extends Comparable<T>> {
         return builder.toString();
     }
 
-    public static class Vertex<T extends Comparable<T>> implements Comparable<Vertex<T>> {
+    @SuppressWarnings("nullness") public static class Vertex<T extends Comparable<T>> implements Comparable<Vertex<T>> {
 
-        private T value = null;
-        private int weight = 0;
+        private /*@MonotonicNonNull*/ T value = null; //nullness is suppressed because non-null value is just initialized as null
+        private int weight = 0;  // Alternatively, @MontonicNonNull can be used, however, my version of Eclipse doesn't support it so I couldn't use it
         private List<Edge<T>> edges = new ArrayList<Edge<T>>();
 
         public Vertex(T value) {
@@ -220,7 +223,7 @@ public class Graph<T extends Comparable<T>> {
             return edges;
         }
 
-        public Edge<T> getEdge(Vertex<T> v) {
+        @Nullable public Edge<T> getEdge(Vertex<T> v) {
             for (Edge<T> e : edges) {
                 if (e.to.equals(v))
                     return e;
@@ -249,7 +252,7 @@ public class Graph<T extends Comparable<T>> {
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object v1) {
+        public boolean equals(@Nullable Object v1) {
             if (!(v1 instanceof Vertex))
                 return false;
 
@@ -327,10 +330,10 @@ public class Graph<T extends Comparable<T>> {
         }
     }
 
-    public static class Edge<T extends Comparable<T>> implements Comparable<Edge<T>> {
+    @SuppressWarnings("nullness") public static class Edge<T extends Comparable<T>> implements Comparable<Edge<T>> {
 
-        private Vertex<T> from = null;
-        private Vertex<T> to = null;
+        private /*@MonotonicNonNull*/ Vertex<T> from = null; //nullness is suppressed because non-null value is just initialized as null
+        private /*@MonotonicNonNull*/ Vertex<T> to = null; // Alternatively, @MontonicNonNull can be used, however, my version of Eclipse doesn't support it so I couldn't use it
         private int cost = 0;
 
         public Edge(int cost, Vertex<T> from, Vertex<T> to) {
@@ -367,7 +370,7 @@ public class Graph<T extends Comparable<T>> {
          */
         @Override
         public int hashCode() {
-            final int cost = (this.cost * (this.getFromVertex().hashCode() * this.getToVertex().hashCode())); 
+            final int cost = (this.cost * (this.getFromVertex().hashCode() * this.getToVertex().hashCode()));
             return 31 * cost;
         }
 
@@ -375,7 +378,7 @@ public class Graph<T extends Comparable<T>> {
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object e1) {
+        public boolean equals(@Nullable Object e1) {
             if (!(e1 instanceof Edge))
                 return false;
 
@@ -424,16 +427,16 @@ public class Graph<T extends Comparable<T>> {
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("[ ").append(from.value).append("(").append(from.weight).append(") ").append("]").append(" -> ")
-                   .append("[ ").append(to.value).append("(").append(to.weight).append(") ").append("]").append(" = ").append(cost).append("\n");
+                    .append("[ ").append(to.value).append("(").append(to.weight).append(") ").append("]").append(" = ").append(cost).append("\n");
             return builder.toString();
         }
     }
 
-    public static class CostVertexPair<T extends Comparable<T>> implements Comparable<CostVertexPair<T>> {
+    @SuppressWarnings("nullness") public static class CostVertexPair<T extends Comparable<T>> implements Comparable<CostVertexPair<T>> {
 
         private int cost = Integer.MAX_VALUE;
-        private Vertex<T> vertex = null;
-
+        private /*@MonotonicNonNull*/ Vertex<T> vertex = null; //nullness is suppressed because non-null value is just initialized as null
+        // Alternatively, @MontonicNonNull can be used, however, my version of Eclipse doesn't support it so I couldn't use it
         public CostVertexPair(int cost, Vertex<T> vertex) {
             if (vertex == null)
                 throw (new NullPointerException("vertex cannot be NULL."));
@@ -466,7 +469,7 @@ public class Graph<T extends Comparable<T>> {
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object e1) {
+        public boolean equals(@Nullable Object e1) {
             if (!(e1 instanceof CostVertexPair))
                 return false;
 
@@ -506,11 +509,11 @@ public class Graph<T extends Comparable<T>> {
         }
     }
 
-    public static class CostPathPair<T extends Comparable<T>> {
+    @SuppressWarnings("nullness") public static class CostPathPair<T extends Comparable<T>> {
 
         private int cost = 0;
-        private List<Edge<T>> path = null;
-
+        private /*@MonotonicNonNull*/ List<Edge<T>> path = null; //nullness is suppressed because non-null value is just initialized as null
+        // Alternatively, @MontonicNonNull can be used, however, my version of Eclipse doesn't support it so I couldn't use it
         public CostPathPair(int cost, List<Edge<T>> path) {
             if (path == null)
                 throw (new NullPointerException("path cannot be NULL."));
@@ -546,7 +549,7 @@ public class Graph<T extends Comparable<T>> {
          * {@inheritDoc}
          */
         @Override
-        public boolean equals(Object obj) {
+        @SuppressWarnings("cast" )public boolean equals(@Nullable Object obj) {
             if (!(obj instanceof CostPathPair))
                 return false;
 
@@ -554,11 +557,11 @@ public class Graph<T extends Comparable<T>> {
             if (this.cost != pair.cost)
                 return false;
 
-            final Iterator<?> iter1 = this.getPath().iterator();
-            final Iterator<?> iter2 = pair.getPath().iterator();
+            final @NonNull Iterator<?> iter1 = this.getPath().iterator();
+            final @NonNull Iterator<?> iter2 = pair.getPath().iterator();
             while (iter1.hasNext() && iter2.hasNext()) {
-                Edge<T> e1 = (Edge<T>) iter1.next();
-                Edge<T> e2 = (Edge<T>) iter2.next();
+                @NonNull Edge<T> e1 = (@NonNull Edge<T>) iter1.next();
+                @NonNull Edge<T> e2 = (@NonNull Edge<T>) iter2.next();
                 if (!e1.equals(e2))
                     return false;
             }

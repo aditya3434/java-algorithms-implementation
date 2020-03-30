@@ -5,11 +5,14 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
- * A Fenwick tree or binary indexed tree is a data structure providing efficient methods 
- * for calculation and manipulation of the prefix sums of a table of values. Fenwick trees 
- * primarily solve the problem of balancing prefix sum calculation efficiency with element 
- * modification efficiency. 
+ * A Fenwick tree or binary indexed tree is a data structure providing efficient methods
+ * for calculation and manipulation of the prefix sums of a table of values. Fenwick trees
+ * primarily solve the problem of balancing prefix sum calculation efficiency with element
+ * modification efficiency.
  * <p>
  * This class is meant to be somewhat generic, all you'd have to do is extend
  * the Data abstract class to store your custom data. I've included a range sum
@@ -20,11 +23,11 @@ import java.util.List;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 @SuppressWarnings("unchecked")
-public class FenwickTree<D extends FenwickTree.Data> {
+@NonNull public class FenwickTree<D extends FenwickTree.Data> {
 
     private Object[] array;
 
-    public FenwickTree(List<D> data) {
+    @SuppressWarnings("nullness") public FenwickTree(List<D> data) {
         // Find the largest index
         int n = 0;
         for (Data d : data)
@@ -35,12 +38,12 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
         // Add the data
         for (D d : data)
-            update(d.index, d);
+            update(d.index, d); // nullness is suppressed because only initialization of object is different
     }
 
     /**
      * Stabbing query
-     * 
+     *
      * @param index
      *            index for query
      * @return data at index.
@@ -51,23 +54,23 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
     /**
      * Range query
-     * 
+     *
      * @param start
      *            start of range (inclusive)
      * @param end
      *            end of range (inclusive)
      * @return data for range.
      */
-    public D query(int start, int end) {
-        final D e = lookup(end);
-        final D s = lookup(start-1);
+    @SuppressWarnings("nullness") public D query(int start, int end) {
+        final D e =  lookup(end);
+        final D s =  lookup(start-1);
         final D c = (D) e.copy();
         if (s != null)
-            c.separate(s);
+            c.separate(s); //nullness is suppressed because s is already being checked for null values
         return c;
     }
 
-    private D lookup(int index) {
+    @Nullable private D lookup(int index) {
         index++; // tree index is 1 based
         index = Math.min(array.length - 1, index);
         if (index <= 0)
@@ -79,7 +82,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
                 final D data = (D) array[index];
                 if (data != null)
                     res = (D) data.copy();
-            } else{ 
+            } else{
                 res.combined((D) array[index]);
             }
             index = prev(index);
@@ -102,11 +105,11 @@ public class FenwickTree<D extends FenwickTree.Data> {
         }
     }
 
-    private static final int prev(int x) {
+    @NonNull private static final int prev(int x) {
         return x & (x - 1);
     }
 
-    private static final int next(int x) {
+    @NonNull private static final int next(int x) {
         return 2 * x - prev(x);
     }
 
@@ -120,7 +123,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
         return builder.toString();
     }
 
-    protected static class FenwickTreePrinter {
+    @NonNull protected static class FenwickTreePrinter {
 
         public static <D extends FenwickTree.Data> String getString(FenwickTree<D> tree) {
             if (tree.array.length == 0)
@@ -167,7 +170,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
         /**
          * Constructor for data at index.
-         * 
+         *
          * @param index
          *            of data.
          */
@@ -184,7 +187,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
         /**
          * Combined this data with the Data parameter.
-         * 
+         *
          * @param data
          *            to combined with.
          * @return Data which represents the combination.
@@ -193,7 +196,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
         /**
          * Separate this data with the Data parameter.
-         * 
+         *
          * @param data
          *            to separate with.
          * @return Data which represents the combination.
@@ -202,14 +205,14 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
         /**
          * Deep copy of data.
-         * 
+         *
          * @return deep copy.
          */
         public abstract Data copy();
 
         /**
          * Query inside this data object.
-         * 
+         *
          * @param startOfRange
          *            of range to query for.
          * @param endOfRange
@@ -243,10 +246,10 @@ public class FenwickTree<D extends FenwickTree.Data> {
         /**
          * Data structure representing sum of the range.
          */
-        public static final class RangeSumData<N extends Number> extends Data {
+        @SuppressWarnings("nullness") public static final class RangeSumData<N extends Number> extends Data {
 
-            public N sum = null;
-
+            public /*@MonotonicNonNull*/ N sum = null; //nullness is suppressed because non-null value is just initialized as null
+            // Alternatively, @MontonicNonNull can be used, however, my version of Eclipse doesn't support it so I couldn't use it
             public RangeSumData(int index, N number) {
                 super(index);
 
@@ -291,7 +294,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
             /**
              * Combined range sum data.
-             * 
+             *
              * @param data
              *            resulted from combination.
              */
@@ -303,7 +306,6 @@ public class FenwickTree<D extends FenwickTree.Data> {
                 else if (this.sum == null && data.sum != null)
                     this.sum = data.sum;
                 else {
-                    /* TODO: This is ugly and how to handle number overflow? */
                     if (this.sum instanceof BigDecimal || data.sum instanceof BigDecimal) {
                         BigDecimal result = ((BigDecimal)this.sum).add((BigDecimal)data.sum);
                         this.sum = (N)result;
@@ -329,7 +331,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
 
             /**
              * Separate range sum data.
-             * 
+             *
              * @param data
              *            resulted from combination.
              */
@@ -341,7 +343,6 @@ public class FenwickTree<D extends FenwickTree.Data> {
                 else if (this.sum == null && data.sum != null)
                     this.sum = data.sum;
                 else {
-                    /* TODO: This is ugly and how to handle number overflow? */
                     if (this.sum instanceof BigDecimal || data.sum instanceof BigDecimal) {
                         BigDecimal result = ((BigDecimal)this.sum).subtract((BigDecimal)data.sum);
                         this.sum = (N)result;
@@ -396,7 +397,7 @@ public class FenwickTree<D extends FenwickTree.Data> {
              * {@inheritDoc}
              */
             @Override
-            public boolean equals(Object obj) {
+            public boolean equals(@Nullable Object obj) {
                 if (!(obj instanceof RangeSumData))
                     return false;
 
